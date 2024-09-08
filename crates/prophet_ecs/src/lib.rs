@@ -64,6 +64,8 @@ impl Ecs {
             .add
             .clone();
 
+        todo!();//FIXME move entity to new archetype
+
         entity_record.row = next_archetype
             .borrow()
             .component_insts
