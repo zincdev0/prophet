@@ -6,7 +6,7 @@ use crate::archetype::ArchetypeRef;
 /// 32 index;
 /// 16 generation;
 /// 8 flags;
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct EntityId(pub u64);
 
 impl EntityId {
@@ -31,6 +31,7 @@ impl EntityId {
 }
 
 /// Points to an entity's archetype and row in archetype
+#[derive(Clone)]
 pub struct EntityArchetypeRecord {
     pub archetype: ArchetypeRef,
     pub row: usize,
