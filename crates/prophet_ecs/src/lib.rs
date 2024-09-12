@@ -4,7 +4,7 @@ pub mod archetype;
 
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use archetype::{ArchetypeId, ArchetypeLocation, ArchetypeRef};
+use archetype::{ArchetypeId, ArchetypeLocation};
 use component::Component;
 use entity::{EntityId, EntityArchetypeRecord};
 
@@ -46,9 +46,10 @@ impl Ecs {
     }
 
     pub fn replace_record(&mut self, ent_id: EntityId, rec: EntityArchetypeRecord)
-            -> () {
+            -> &EntityArchetypeRecord {
         self.entity_index
             .insert(ent_id, rec);
+        self.get_record(&ent_id)
     }
 
     /// Gets a component of an entity
@@ -88,26 +89,48 @@ impl Ecs {
         // choice: 3 for now
         // reasoning: 1 and 2 are a memory leak
         // this comment will be left in case it needs to be changed
+
+        // Save copy of old record
         let prev_rec = self
             .get_record(ent_id)
             .clone();
 
-        let mut next_rec = EntityArchetypeRecord {
+        // Adjust record
+        let next_rec = self.replace_record(ent_id.clone(), EntityArchetypeRecord {
             archetype: prev_rec.archetype
                 .borrow()
                 .add(comp_id)
                 .clone(),
-            row: 0,
-        };
+            row: prev_rec.archetype
+                .borrow()
+                .add(comp_id)
+                .borrow()
+                .component_insts
+                .get(0)
+                .and_then(|row| Some(row.len()))
+                .unwrap_or(0),
+        }).clone();
+        let next_arch = next_rec.archetype.clone();
 
-        next_rec.row = prev_rec.archetype
-            .borrow()
+        prev_rec.archetype
+            .borrow_mut()
             .component_insts
-            .get(0)
-            .and_then(|row| Some(row.len()))
-            .unwrap_or(0);
-
-        self.replace_record(ent_id.clone(), next_rec);
+            .iter_mut()
+            .enumerate()
+            .for_each(|(col_idx, rows)| { // iterating component ids
+                next_arch
+                    .borrow_mut()
+                    .component_insts
+                    .get_mut(self.component_index
+                        [next_arch
+                            .borrow_mut()
+                            .component_ids
+                            .get(col_idx)
+                            .unwrap()]
+                        [&next_rec.archetype.borrow().id])
+                    .unwrap()
+                    .push(rows.remove(prev_rec.row));
+            });
 
         // Decrement row count for entities after removed components
         self.entity_index
