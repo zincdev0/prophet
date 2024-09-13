@@ -1,35 +1,39 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::component::{Component, ComponentId};
+use crate::component::{ComponentId, ComponentRef};
+
 
 /// An identifier of an Archetype
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
-pub struct ArchetypeId(pub u64);
+pub struct ArchetypeId(
+    pub(crate) u64,
+);
 
-/// Reference/handle to an Archetype
-pub type ArchetypeRef = Rc<RefCell<Archetype>>;
 
 /// A type of an entity, containing a set of components.
 pub struct Archetype {
     /// A unique identifier
-    pub id: ArchetypeId,
+    pub(crate) id: ArchetypeId,
+    
     /// The component ids associated with the Archetype
-    pub component_ids: Vec<ComponentId>,
+    pub(crate) component_ids: Vec<ComponentId>,
+    
     /// The list (indexed by component id) of component instances for anything sharing the Archetype
-    pub component_insts: Vec<Vec<Rc<RefCell<dyn Component>>>>,
+    pub(crate) component_insts: Vec<Vec<ComponentRef>>,
+    
     /// Cached references to Archetypes resulting if a component is added or removed
-    pub edges: HashMap<ComponentId, ArchetypeEdge>,
+    pub(crate) edges: HashMap<ComponentId, ArchetypeEdge>,
 }
 
 impl Archetype {
-    pub fn add(&self, component: &ComponentId)
+    pub(crate) fn get_add(&self, component: &ComponentId)
             -> &ArchetypeRef {
         &self.edges
             [component]
             .add
     }
-
-    pub fn rem(&self, component: &ComponentId)
+    
+    pub(crate) fn get_rem(&self, component: &ComponentId)
             -> &ArchetypeRef {
         &self.edges
             [component]
@@ -37,11 +41,17 @@ impl Archetype {
     }
 }
 
+
+/// Reference/handle to an Archetype
+pub type ArchetypeRef = Rc<RefCell<Archetype>>;
+
+
 /// A set of references to archetypes which would result if a component is added or removed
 pub struct ArchetypeEdge {
     pub add: ArchetypeRef,
     pub rem: ArchetypeRef,
 }
 
+
 // Points to an archetypes' column
-pub type ArchetypeLocation = usize;
+pub type ArchetypeColumn = usize;

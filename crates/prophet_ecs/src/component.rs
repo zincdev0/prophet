@@ -1,11 +1,16 @@
 use std::{cell::RefCell, rc::Rc};
 
-/// A unique identifier for each different component type
-#[derive(PartialEq, Eq, Hash)]
-pub struct ComponentId(pub u64);
 
-/// Instances of structs dyn Component will be created containing component data
-/// Contained within Box<dyn Component> (heap allocated)
+/// A unique identifier for each different component type
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub struct ComponentId(
+    pub(crate) u64,
+);
+
+
+/// Component data and functionality
 pub trait Component {}
 
+
+/// Reference/handle to a Component
 pub type ComponentRef = Rc<RefCell<dyn Component>>;
