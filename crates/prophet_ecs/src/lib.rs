@@ -25,9 +25,17 @@ impl Ecs {
     pub fn new()
             -> Ecs {
         Ecs {
-            entity_index: HashMap::<EntityId, EntityRecord>::new(),
-            component_index: HashMap::<ComponentId, HashMap<ArchetypeId, ArchetypeColumn>>::new(),
-            archetype_index: HashMap::<ArchetypeId, ArchetypeRef>::new(),
+            entity_index: HashMap::new(),
+            component_index: HashMap::new(),
+            archetype_index: [ArchetypeId(0)]
+                .iter()
+                .map(|arch_id| (arch_id.clone(), Rc::new(RefCell::new(Archetype {
+                    id: arch_id.clone(),
+                    component_ids: Vec::new(),
+                    component_insts: Vec::new(),
+                    edges: HashMap::new(),
+                }))))
+                .collect(),
         }
     }
 
