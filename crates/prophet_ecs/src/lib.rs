@@ -106,6 +106,12 @@ impl Ecs {
 
                 arch_map.insert(arch_id, new_arch_ref);
             });
+        arch_map
+            .into_iter()
+            .for_each(|(arch_id, arch_ref)| {
+                self.archetype_index
+                    .insert(arch_id, arch_ref);
+            });
 
         self.component_index
             .insert(comp_id, arch_locs);
