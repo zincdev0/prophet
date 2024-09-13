@@ -214,17 +214,14 @@ impl Ecs {
                     .push(rows.remove(prev_rec.row));
             });
 
-        let what = next_arch
-            .borrow()
-            .component_insts
-            .get_mut(comp_id)
-            .unwrap();
-
         // Decrement row count for entities after removed components
         self.entity_index
             .iter_mut()
             .filter(|(_ent, rec)| rec.archetype.borrow().id == prev_rec.archetype.borrow().id)
             .filter(|(_ent, rec)| rec.row > prev_rec.row)
             .for_each(|(_ent, rec)| rec.row -= 1);
+
+        // FIXME
+        todo!()
     }
 }
